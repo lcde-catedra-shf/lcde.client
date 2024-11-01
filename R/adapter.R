@@ -249,3 +249,329 @@ adapter.fetch_municipality_inse = function(
 
   return(as.data.frame(data))
 }
+
+adapter.fetch_pca_data_municipality = function(
+  this, #: adapter
+  nome_municipio,
+  sigla_uf,
+  rede,
+  etapa,
+  localizacao,
+  ano
+) {
+  .adapter.check_class(this)
+
+  conn = dbConnect(RSQLite::SQLite(), this$path)
+
+  query = "
+    SELECT
+        am.id,
+        am.nome_municipio,
+        ii.ano,
+        ii.rede,
+        ii.etapa,
+        iap.localizacao,
+        iap.lp,
+        iap.mat,
+        ii.np,
+        ii.fluxo,
+        it.tdi
+    FROM
+        amostras_municipios am
+    INNER JOIN
+        (
+        	SELECT
+    			x.id_amostra,
+    			x.np,
+    			x.fluxo,
+    			x.ano,
+    			x.rede,
+    			x.etapa
+    		FROM indicadores_ideb x
+    		inner join amostras_municipios y on y.id = x.id_amostra
+    		WHERE
+    			x.ano = ? AND
+    			x.etapa = ? AND
+    			x.rede = ? AND
+    			y.nome_municipio = ? AND
+    			y.uf = ?
+        ) ii ON ii.id_amostra = am.id
+    INNER JOIN
+        (
+        	SELECT
+    			x.id_amostra,
+    			x.lp,
+    			x.mat,
+    			x.ano,
+    			x.localizacao
+    		FROM indicadores_aprendizado_adequado x
+    		inner join amostras_municipios y on y.id = x.id_amostra
+    		WHERE
+    			x.ano = ? AND
+    			x.etapa = ? AND
+    			x.rede = ? AND
+    			x.localizacao = ? AND
+    			y.nome_municipio = ? AND
+    			y.uf = ?
+    	) iap ON
+        	iap.id_amostra = am.id
+    INNER JOIN
+        (
+        	SELECT
+    			x.id_amostra,
+    			x.tdi,
+    			x.ano
+    		FROM indicadores_tdi x
+    		inner join amostras_municipios y on y.id = x.id_amostra
+    		WHERE
+    			x.ano = ? AND
+    			x.etapa = ? AND
+    			x.rede = ? AND
+    			x.localizacao = ? AND
+    			y.nome_municipio = ? AND
+    			y.uf = ?
+        ) it ON
+        	it.id_amostra = am.id
+  "
+
+  data = dbGetQuery(
+    conn,
+    query,
+    params = list(
+      ano,
+      etapa,
+      rede,
+      nome_municipio,
+      sigla_uf,
+      ano,
+      etapa,
+      rede,
+      localizacao,
+      nome_municipio,
+      sigla_uf,
+      ano,
+      etapa,
+      rede,
+      localizacao,
+      nome_municipio,
+      sigla_uf
+    )
+  )
+
+  dbDisconnect(conn)
+
+  return(as.data.frame(data))
+}
+
+adapter.fetch_pca_data_state = function(
+    this, #: adapter
+    sigla_uf,
+    rede,
+    etapa,
+    localizacao,
+    ano
+) {
+  .adapter.check_class(this)
+
+  conn = dbConnect(RSQLite::SQLite(), this$path)
+
+  query = "
+    SELECT
+        ae.id,
+        ae.uf,
+        ae.nome_estado,
+        ii.ano,
+        ii.rede,
+        ii.etapa,
+        iap.localizacao,
+        iap.lp,
+        iap.mat,
+        ii.np,
+        ii.fluxo,
+        it.tdi
+    FROM
+        amostras_estados ae
+    INNER JOIN
+        (
+        	SELECT
+    			x.id_amostra,
+    			x.np,
+    			x.fluxo,
+    			x.ano,
+    			x.rede,
+    			x.etapa
+    		FROM indicadores_ideb x
+    		inner join amostras_estados y on y.id = x.id_amostra
+    		WHERE
+    			x.ano = ? AND
+    			x.etapa = ? AND
+    			x.rede = ? AND
+    			y.uf = ?
+        ) ii ON ii.id_amostra = ae.id
+    INNER JOIN
+        (
+        	SELECT
+    			x.id_amostra,
+    			x.lp,
+    			x.mat,
+    			x.ano,
+    			x.localizacao
+    		FROM indicadores_aprendizado_adequado x
+    		inner join amostras_estados y on y.id = x.id_amostra
+    		WHERE
+    			x.ano = ? AND
+    			x.etapa = ? AND
+    			x.rede = ? AND
+    			x.localizacao = ? AND
+    			y.uf = ?
+    	) iap ON
+        	iap.id_amostra = ae.id
+    INNER JOIN
+        (
+        	SELECT
+    			x.id_amostra,
+    			x.tdi,
+    			x.ano
+    		FROM indicadores_tdi x
+    		inner join amostras_estados y on y.id = x.id_amostra
+    		WHERE
+    			x.ano = ? AND
+    			x.etapa = ? AND
+    			x.rede = ? AND
+    			x.localizacao = ? AND
+    			y.uf = ?
+        ) it ON
+        	it.id_amostra = ae.id
+  "
+
+  data = dbGetQuery(
+    conn,
+    query,
+    params = list(
+      ano,
+      etapa,
+      rede,
+      sigla_uf,
+      ano,
+      etapa,
+      rede,
+      localizacao,
+      sigla_uf,
+      ano,
+      etapa,
+      rede,
+      localizacao,
+      sigla_uf
+    )
+  )
+
+  dbDisconnect(conn)
+
+  return(as.data.frame(data))
+}
+
+adapter.fetch_pca_data_country = function(
+    this, #: adapter
+    nome_pais,
+    rede,
+    etapa,
+    localizacao,
+    ano
+) {
+  .adapter.check_class(this)
+
+  conn = dbConnect(RSQLite::SQLite(), this$path)
+
+  query = "
+    SELECT
+        ap.id,
+        ap.nome_pais,
+        ii.ano,
+        ii.rede,
+        ii.etapa,
+        iap.localizacao,
+        iap.lp,
+        iap.mat,
+        ii.np,
+        ii.fluxo,
+        it.tdi
+    FROM
+        amostras_paises ap
+    INNER JOIN
+        (
+        	SELECT
+    			x.id_amostra,
+    			x.np,
+    			x.fluxo,
+    			x.ano,
+    			x.rede,
+    			x.etapa
+    		FROM indicadores_ideb x
+    		inner join amostras_paises y on y.id = x.id_amostra
+    		WHERE
+    			x.ano = ? AND
+    			x.etapa = ? AND
+    			x.rede = ? AND
+    			y.nome_pais = ?
+        ) ii ON ii.id_amostra = ap.id
+    INNER JOIN
+        (
+        	SELECT
+    			x.id_amostra,
+    			x.lp,
+    			x.mat,
+    			x.ano,
+    			x.localizacao
+    		FROM indicadores_aprendizado_adequado x
+    		inner join amostras_paises y on y.id = x.id_amostra
+    		WHERE
+    			x.ano = ? AND
+    			x.etapa = ? AND
+    			x.rede = ? AND
+    			x.localizacao = ? AND
+    			y.nome_pais = ?
+    	) iap ON
+        	iap.id_amostra = ap.id
+    INNER JOIN
+        (
+        	SELECT
+    			x.id_amostra,
+    			x.tdi,
+    			x.ano
+    		FROM indicadores_tdi x
+    		inner join amostras_paises y on y.id = x.id_amostra
+    		WHERE
+    			x.ano = ? AND
+    			x.etapa = ? AND
+    			x.rede = ? AND
+    			x.localizacao = ? AND
+    			y.nome_pais = ?
+        ) it ON
+        	it.id_amostra = ap.id
+  "
+
+  data = dbGetQuery(
+    conn,
+    query,
+    params = list(
+      ano,
+      etapa,
+      rede,
+      nome_pais,
+      ano,
+      etapa,
+      rede,
+      localizacao,
+      nome_pais,
+      ano,
+      etapa,
+      rede,
+      localizacao,
+      nome_pais
+    )
+  )
+
+  dbDisconnect(conn)
+
+  return(as.data.frame(data))
+}
