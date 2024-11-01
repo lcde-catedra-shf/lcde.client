@@ -575,3 +575,58 @@ adapter.fetch_pca_data_country = function(
 
   return(as.data.frame(data))
 }
+
+
+adapter.fetch_pca_years = function(
+    this #: adapter
+) {
+  .adapter.check_class(this)
+
+  conn = dbConnect(RSQLite::SQLite(), this$path)
+
+  query = "
+    SELECT
+    	DISTINCT (ii.ano) AS ano
+    FROM indicadores_ideb ii
+    INNER JOIN amostras a ON a.id = ii.id_amostra
+    WHERE a.tipo = 'escola'
+  "
+
+  data_ii = dbGetQuery(
+    conn,
+    query
+  )
+
+  query = "
+    SELECT
+    	DISTINCT (iaa.ano) AS ano
+    FROM indicadores_aprendizado_adequado iaa
+    INNER JOIN amostras a ON a.id = iaa.id_amostra
+    WHERE a.tipo = 'escola'
+  "
+
+  data_iaa = dbGetQuery(
+    conn,
+    query
+  )
+
+  query = "
+    SELECT
+    	DISTINCT (tdi.ano) AS ano
+    FROM indicadores_tdi tdi
+    INNER JOIN amostras a ON a.id = tdi.id_amostra
+    WHERE a.tipo = 'escola'
+  "
+
+  data_tdi = dbGetQuery(
+    conn,
+    query
+  )
+
+  data = merge(data_iaa, data_ii, on='ano')
+  data = merge(data, data_tdi, on='ano')
+
+  dbDisconnect(conn)
+
+  return(data$ano)
+}
