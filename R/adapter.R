@@ -630,3 +630,35 @@ adapter.fetch_pca_years = function(
 
   return(data$ano)
 }
+
+adapter.fetch_state = function(
+  this,
+  sigla_uf
+) {
+  .adapter.check_class(this)
+
+  conn = dbConnect(RSQLite::SQLite(), this$path)
+
+  query = "
+    SELECT
+    	id AS codigo_estado,
+    	nome_estado,
+    	uf,
+    	codigo_pais,
+    	nome_pais
+    FROM amostras_estados ae
+    WHERE uf = ?
+  "
+
+  data = dbGetQuery(
+    conn,
+    query,
+    params = list(
+      sigla_uf
+    )
+  )
+
+  dbDisconnect(conn)
+
+  return(as.data.frame(data))
+}
