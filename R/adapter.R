@@ -662,3 +662,28 @@ adapter.fetch_state = function(
 
   return(as.data.frame(data))
 }
+
+adapter.fetch_coordinates = function(
+    this
+) {
+  .adapter.check_class(this)
+
+  conn = dbConnect(RSQLite::SQLite(), this$path)
+
+  query = "
+    SELECT
+    	id_amostra,
+    	latitude,
+    	longitude
+    FROM coordenadas
+  "
+
+  data = dbGetQuery(
+    conn,
+    query
+  )
+
+  dbDisconnect(conn)
+
+  return(as.data.frame(data))
+}
